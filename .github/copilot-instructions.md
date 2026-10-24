@@ -58,6 +58,8 @@ Never claim a test passed unless it was actually executed and passed.
 
 A successful import, compilation, or test run does not by itself establish numerical or physical correctness.
 
+After that, modify the documentation to reflect the new behavior, including any changes to public interfaces, mathematical conventions, or file formats.
+
 ## 3. Architecture and Extensibility
 
 ### Prefer explicit specialization over excessive abstraction
