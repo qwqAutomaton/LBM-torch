@@ -15,6 +15,7 @@
 | `plan.md` | P0~P8 实施顺序，每阶段的验收标准 |
 | `validation.md` | 守恒/不动点/力响应测试、Poiseuille 算例参数与容差、收敛阶 |
 | `pitfalls.md` | 数值、PyTorch、MPS/CUDA、性能上的已知坑 |
+| `research_mrt.md` | MRT 调研与集成指导：矩空间公式（本项目方向序）、参数 SOP、验证清单、陷阱 |
 
 ## 一页纸设计决定
 

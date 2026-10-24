@@ -180,7 +180,7 @@ _advance(src, dst):                            # 纯函数式：不碰 cur_idx/c
     rho, u = macroscopic(src, self._st.c, self.force)   # 含 F/2 修正
     f_post = self.collision(src, rho, u, self.force)   # 含 Guo 源项
     self._stream(f_post, dst)                      # 逐方向切片写入 + 反射覆盖
-    self._apply_open_boundary(dst)                 # 仅 inlet_outlet 生效；基类是空钩子
+    self._apply_open_boundary(dst)                 # 已实现完整 Zou/He
 ```
 
 顺序不能调换：`_apply_open_boundary` 必须在 `_stream` 之后，
