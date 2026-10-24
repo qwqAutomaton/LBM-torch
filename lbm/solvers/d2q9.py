@@ -91,6 +91,7 @@ class D2Q9Solver(BaseSolver):
         boundary: str = "periodic",
         u_inf: float = 0.0,
         rho_inf: float = 1.0,
+        s_e: float = 1.9,
         **kwargs,
     ) -> None:
         if boundary not in ("periodic", "inlet_outlet"):
@@ -100,6 +101,7 @@ class D2Q9Solver(BaseSolver):
         self._boundary = boundary
         self._u_inf = float(u_inf)
         self._rho_inf = float(rho_inf)
+        self._s_e = float(s_e)
         if boundary == "inlet_outlet":
             if not (-1.0 < self._u_inf < 1.0):
                 raise ValueError(f"u_inf 必须在 (-1,1) 内，收到 {u_inf}")
@@ -131,11 +133,22 @@ class D2Q9Solver(BaseSolver):
         self.collision = self._make_collision()
 
     def _make_collision(self):
-        if self.collision_kind in ("trt", "mrt"):
-            # Λ 由外部指定；不指定时用 3/16（magic parameter 的常用取值）
-            lam = DEFAULT_LAMBDA if self.Lambda is None else self.Lambda
-            self.Lambda = lam
-            if self.collision_kind == "trt":
+        match self.collision_kind:
+            case "bgk":
+                if self.Lambda is not None:
+                    warnings.warn(
+                        "collision='bgk' 时 Lambda 无意义，已忽略",
+                        RuntimeWarning,
+                        stacklevel=3,
+                    )
+                    self.Lambda = None
+                self.collision_info = {"collision": "bgk"}
+                return BGK(self.tau, self._st.w, self._st.c)
+
+            case "trt":
+                # Λ 由外部指定；不指定时用 3/16（magic parameter 的常用取值）
+                lam = DEFAULT_LAMBDA if self.Lambda is None else self.Lambda
+                self.Lambda = lam
                 op = TRT.from_lambda(
                     self.tau, lam, self._st.w, self._st.c, self._st.opp
                 )
@@ -146,23 +159,29 @@ class D2Q9Solver(BaseSolver):
                 }
                 return op
 
-            op = MRT(self.nu, lam, self._st.w, self._st.c, self.spec.c)
-            self.collision_info = {
-                "collision": "mrt",
-                "Lambda": lam,
-                "s_nu": op.s_nu,
-                "s_e": op.s_e,
-                "s_q": op.s_q,
-            }
-            return op
+            case "mrt":
+                # Λ 由外部指定；不指定时用 3/16（magic parameter 的常用取值）
+                lam = DEFAULT_LAMBDA if self.Lambda is None else self.Lambda
+                self.Lambda = lam
+                op = MRT(
+                    self.nu,
+                    lam,
+                    self._st.w,
+                    self._st.c,
+                    self.spec.c,
+                    s_e=self._s_e,
+                )
+                self.collision_info = {
+                    "collision": "mrt",
+                    "Lambda": lam,
+                    "s_nu": op.s_nu,
+                    "s_e": op.s_e,
+                    "s_q": op.s_q,
+                }
+                return op
 
-        if self.Lambda is not None:
-            warnings.warn(
-                "collision='bgk' 时 Lambda 无意义，已忽略", RuntimeWarning, stacklevel=3
-            )
-            self.Lambda = None
-        self.collision_info = {"collision": "bgk"}
-        return BGK(self.tau, self._st.w, self._st.c)
+            case _:
+                raise RuntimeError(f"未知碰撞模型: {self.collision_kind!r}")
 
     def _stream(self, f_post: torch.Tensor, dst: torch.Tensor) -> None:
         dst[0].copy_(f_post[0])

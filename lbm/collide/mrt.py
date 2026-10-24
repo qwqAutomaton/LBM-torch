@@ -105,6 +105,7 @@ class MRT(CollisionOperator):
         w: torch.Tensor,
         c: Sequence[torch.Tensor],
         velocities: Sequence[Sequence[int]],
+        s_e: float = 1.9,
     ) -> None:
         if nu <= 0.0:
             raise ValueError(f"nu 必须为正，当前 {nu}")
@@ -118,7 +119,7 @@ class MRT(CollisionOperator):
         # 魔法参数只约束 ghost（能量通量）模式，决定半程反弹的壁面位置
         self.s_q = 1.0 / (0.5 + self.Lambda / (self.tau - 0.5))
         # 能量模式必须快速松弛，否则低粘度 + Zou/He 出口会指数发散
-        self.s_e = 1.9
+        self.s_e = s_e
         if not 0.0 < self.s_q < 2.0:
             raise ValueError(
                 "Lambda/(tau - 0.5) 给出的 s_q 必须落在 (0,2)，"
