@@ -83,4 +83,4 @@ python examples/bench.py --shape 512 512 --steps 500 --device mps
 
 - `D3Q19` / `D3Q27`：只有速度集元数据和类，`initialize` / `step` 抛 `NotImplementedError`
 - HDF5 / VTK 输出（`lbm/io/h5.py`、`lbm/io/vtk.py` 是 stub）
-- MRT / 滑移边界 / 多相 / 传热 / 多卡
+- D3 MRT / 滑移边界 / 多相 / 传热 / 多卡
